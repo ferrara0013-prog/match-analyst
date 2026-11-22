@@ -107,14 +107,21 @@ let S={started:false,golden:true,names:["Giocatore 1","Giocatore 2","Giocatore 3
 let sel=null,tab="match",confirmReset=false;
 try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r&&Array.isArray(r.names)&&r.names.length===4&&Array.isArray(r.ev))S=r}catch(e){}
 if(!Array.isArray(S.teams))S.teams=["",""];
-if(!Array.isArray(S.maestri))S.maestri=[];if(typeof S.maestro!=="string")S.maestro="";if(typeof S.club!=="string")S.club="";if(typeof S.date!=="string")S.date="";
+if(!Array.isArray(S.maestri))S.maestri=[];if(typeof S.maestro!=="string")S.maestro="";if(typeof S.club!=="string")S.club="";if(typeof S.date!=="string")S.date="";if(!["normal","tb7","tb10"].includes(S.third))S.third="normal";
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const tn=t=>(S.teams&&S.teams[t])||S.names[t*2]+" / "+S.names[t*2+1];
 
+function isThird(m){return !m.over&&(S.third==="tb7"||S.third==="tb10")&&m.sets.length===2&&m.w[0]===1&&m.w[1]===1}
 function endSet(m,t){m.sets.push([...m.g]);m.w[t]++;m.g=[0,0];m.p=[0,0];m.tb=false;if(m.w[t]===2)m.over=true}
 function point(m,t){
   const o=1-t;
+  if(isThird(m)){
+    const tgt=S.third==="tb10"?10:7;
+    m.p[t]++;
+    if(m.p[t]>=tgt&&m.p[t]-m.p[o]>=2){m.sets.push([...m.p]);m.w[t]++;m.over=true;m.p=[0,0];m.g=[0,0]}
+    return;
+  }
   if(m.tb){m.p[t]++;if(m.p[t]>=7&&m.p[t]-m.p[o]>=2){m.g[t]++;endSet(m,t)}return}
   m.p[t]++;
   const won=S.golden?m.p[t]>=4:(m.p[t]>=4&&m.p[t]-m.p[o]>=2);
@@ -129,7 +136,7 @@ function compute(){
   return m;
 }
 function ptl(m,t){
-  if(m.tb)return String(m.p[t]);
+  if(m.tb||isThird(m))return String(m.p[t]);
   const o=1-t,L=["0","15","30","40"];
   if(!S.golden&&m.p[t]>=3&&m.p[o]>=3){return m.p[t]>m.p[o]?"Van":"40"}
   return L[m.p[t]];
@@ -158,6 +165,7 @@ function viewSetup(){
   <div><label for="n2">Squadra 2, giocatore di DX</label><input id="n2" type="text" value="${esc(S.names[2])}" maxlength="20"></div>
   <div><label for="n3">Squadra 2, giocatore di SX</label><input id="n3" type="text" value="${esc(S.names[3])}" maxlength="20"></div></div>
   <label class="chk"><input id="gold" type="checkbox" ${S.golden?"checked":""}><span><b>Punto d’oro</b><br><span class="muted">Sul 40-40 decide un solo punto. Se lo togli, si gioca con i vantaggi.</span></span></label>
+  <div style="margin-top:16px"><label for="third">Terzo set</label><select id="third" class="fld"><option value="normal" ${S.third==="normal"?"selected":""}>Set normale</option><option value="tb7" ${S.third==="tb7"?"selected":""}>Tie-break a 7 punti</option><option value="tb10" ${S.third==="tb10"?"selected":""}>Tie-break a 10 punti</option></select></div>
   <button class="btn full" data-a="start">Inizia la partita</button>
   <p class="hint">Si gioca al meglio dei 3 set, con tie-break sul 6-6.</p></div>`;
 }
@@ -165,9 +173,10 @@ function viewSetup(){
 function viewBoard(m){
   const nSets=m.sets.length;
   const head=`<div class="row head"><div class="tn" style="font-weight:400"></div>${m.sets.map((_,i)=>`<div class="n">Set ${i+1}</div>`).join("")}<div class="n">Game</div><div class="n">Punti</div></div>`;
-  const rows=[0,1].map(t=>`<div class="row"><div class="tn t${t}">${esc(tn(t))}</div>${m.sets.map(s=>`<div class="n">${s[t]}</div>`).join("")}<div class="n cur">${m.g[t]}</div><div class="n pt">${ptl(m,t)}</div></div>`).join("");
+  const rows=[0,1].map(t=>`<div class="row"><div class="tn t${t}">${esc(tn(t))}</div>${m.sets.map(s=>`<div class="n">${s[t]}</div>`).join("")}<div class="n cur">${isThird(m)?"–":m.g[t]}</div><div class="n pt">${ptl(m,t)}</div></div>`).join("");
   let st="";
   if(m.over){st="Partita finita"}
+  else if(isThird(m)){st="Terzo set: tie-break a "+(S.third==="tb10"?10:7)+" punti"}
   else if(m.tb){st="Tie-break in corso"}
   else if(S.golden&&m.p[0]===3&&m.p[1]===3){st="Punto d’oro: chi vince il punto vince il game"}
   else if(!S.golden&&m.p[0]>=3&&m.p[1]>=3){st=m.p[0]===m.p[1]?"Parità":"Vantaggio"}
@@ -247,7 +256,7 @@ document.addEventListener("click",e=>{
     S.names=[0,1,2,3].map(i=>(document.getElementById("n"+i).value.trim()||"Giocatore "+(i+1)));
     S.teams=[0,1].map(i=>document.getElementById("t"+i).value.trim());
     S.club=document.getElementById("club").value.trim();S.date=document.getElementById("mdate").value;{const nm=document.getElementById("newm").value.trim();S.maestro=nm;if(nm&&!S.maestri.includes(nm))S.maestri.push(nm)}
-    S.golden=document.getElementById("gold").checked;S.ev=[];S.started=true;sel=null;tab="match";
+    S.third=document.getElementById("third").value;S.golden=document.getElementById("gold").checked;S.ev=[];S.started=true;sel=null;tab="match";
   }else if(a==="tab"){tab=v}
   else if(a==="sel"){sel=sel===+v?null:+v}
   else if(a==="act"&&sel!=null){
