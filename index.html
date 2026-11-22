@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Match Analyst</title>
+<title>MATCH ANALISYS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
@@ -147,9 +147,9 @@ function stats(){
 const sum=(o,ks)=>ks.reduce((a,k)=>a+o[k],0);
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function mopts(){return `<option value="">Match Analyst</option>`+S.maestri.map(n=>`<option value="${esc(n)}" ${n===S.maestro?"selected":""}>${esc(n)}</option>`).join("")}
+function mopts(){return `<option value="">MATCH ANALISYS</option>`+S.maestri.map(n=>`<option value="${esc(n)}" ${n===S.maestro?"selected":""}>${esc(n)}</option>`).join("")}
 function viewSetup(){
-  return `<div class="pair"><div><label class="mlab" for="club">Circolo</label><input id="club" class="fld" type="text" value="${esc(S.club||"")}" maxlength="40" placeholder="Nome del circolo"></div><div><label class="mlab" for="mdate">Data</label><input id="mdate" class="fld" type="date" value="${esc(S.date||todayStr())}"></div></div><h1 style="margin:14px 0 8px">Match Analyst</h1><div class="addm"><input id="newm" type="text" list="mlist" value="${esc(S.maestro||"")}" placeholder="Nome del maestro" maxlength="24" aria-label="Nome del maestro"><datalist id="mlist">${S.maestri.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div><p class="muted">Registra colpo per colpo una partita e guarda le statistiche di ogni giocatore.</p>
+  return `<div class="pair"><div><label class="mlab" for="club">Circolo</label><input id="club" class="fld" type="text" value="${esc(S.club||"")}" maxlength="40" placeholder="Nome del circolo"></div><div><label class="mlab" for="mdate">Data</label><input id="mdate" class="fld" type="date" value="${esc(S.date||todayStr())}"></div></div><h1 style="margin:14px 0 8px">MATCH ANALISYS</h1><div class="addm"><input id="newm" type="text" list="mlist" value="${esc(S.maestro||"")}" placeholder="Nome del maestro" maxlength="24" aria-label="Nome del maestro"><datalist id="mlist">${S.maestri.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div><p class="muted">Registra colpo per colpo una partita e guarda le statistiche di ogni giocatore.</p>
   <div class="card setup"><div class="pair">
   <div style="grid-column:1/-1"><label for="t0">Nome squadra 1 (facoltativo)</label><input id="t0" type="text" value="${esc((S.teams&&S.teams[0])||"")}" maxlength="24"></div>
   <div><label for="n0">Squadra 1, giocatore di DX</label><input id="n0" type="text" value="${esc(S.names[0])}" maxlength="20"></div>
